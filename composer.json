@@ -1,0 +1,22 @@
+{
+    "name": "codecubes/datatable",
+    "description": "jQuery Datatable for Laravel applications",
+    "require": {
+        "illuminate/support": "~5"
+    },
+    "repositories": [
+
+    ],
+    "license": "GNU LESSER GENERAL PUBLIC LICENSE Version 3",
+    "authors": [
+        {
+            "name": "Mohamed Saeed",
+            "email": "msaeed027@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "CodeCubes\\DataTable\\": "/src"
+        }
+    }
+}
