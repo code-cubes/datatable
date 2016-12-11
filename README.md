@@ -6,7 +6,8 @@ Until now it's under development and not stable yet. and not avaliable as stable
 ##### Installation:
 1. Create directory in Laravel root directory (as an example "extensions")
 2. In Laravel composer.json you will find "classmap" array add your created directory to it example:
-    ```js
+
+    ```
     "autoload": {
         "classmap": [
             "database",
@@ -20,11 +21,13 @@ Until now it's under development and not stable yet. and not avaliable as stable
 3. Create sub directory called CodeCubes for created directory in point (1) (as an example "extensions/CodeCubes")
 4. download this package inside this sub directory and make sure that directory name for this package called datatable
 5. open config/app.php and in providers array add 
-    ```php
+
+    ```
     CodeCubes\DataTable\Providers\DataTableServiceProvider::class,
     ```
 6. run this command on laravel root directory
-    ```sh
+
+    ```
     php artisan vendor:publish --provider "CodeCubes\DataTable\Providers\DataTableServiceProvider"
     ```
     
