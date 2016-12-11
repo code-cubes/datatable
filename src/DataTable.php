@@ -28,7 +28,7 @@ class DataTable implements DataTableContract {
 			"processing"	=>	true,
 			"serverSide"	=>	true,
 			"enableFilter"	=>	true,
-			"displaTFoot"	=>	false,
+			"displayTFoot"	=>	false,
 		];
 		$this->setRoute($route);
 		$this->setColumns($columns);
