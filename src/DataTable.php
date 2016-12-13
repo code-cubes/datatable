@@ -103,7 +103,14 @@ class DataTable implements DataTableContract {
 			if (is_numeric($key)) {
 				$this->add($value);
 			} else {
-				$this->add($key, $value);
+				if (is_array($value)) {
+					$alias = array_get($value, "as", null);
+					$render = array_get($value, "render", null);
+
+					$this->add($key, $alias, $render);
+				} else {
+					$this->add($key, $value);					
+				}
 			}
 		}
 	}
@@ -115,15 +122,17 @@ class DataTable implements DataTableContract {
 	 *
 	 * @param string $columnName
 	 * @param string|null $columnAlias
+	 * @param string|null $render
 	 * @return void
 	 */
-	protected function add ($columnName, $columnAlias = null) {
+	protected function add ($columnName, $columnAlias = null, $render = null) {
 		$columnAlias = $columnAlias ?: $columnName;
 
 		$this->columns[] = [
 			"name"			=>	$columnName,
 			"mappedName"	=>	$this->getMappedColumnName($columnName),
 			"alias"			=>	$columnAlias,
+			"render"			=>	$render,
 		];
 	}
 

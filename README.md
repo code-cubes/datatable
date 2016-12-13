@@ -53,7 +53,40 @@ public function list () {
 }
 ```
 
-example (2)
+example (2):
+```php
+/**
+ * @route admin.home (route alias)
+ */
+public function list () {
+    $user = new App\User;
+    
+    $dataTable = new CodeCubes\DataTable\DataTable($user, "admin.home", [
+        // columns name or column name => column Alias
+        "id",
+        "name",
+        "email", 
+        "created_at" => [
+            "as" => "created At", 
+            "render" => 
+                // here --[id]-- will replaced by id attribute send with each row ...
+                "<a href='" . route('test', ['--[id]--', '--[name]--']) . "' >--[created_at]--</a>"
+            ], 
+    ]);
+    // in case of that this method is responsible for rendering table
+    // and in the same time return JSON data required by datatable.
+    return $dataTable->response(request(), view('welcome', compact(["dataTable"])));
+}
+
+/**
+ * @route test (route alias for test/{id?}/{name?})
+ */
+public function test ($id = null, $name = null) {
+    dd("$id / $name");
+}
+```
+
+example (3)
 ```php
 public function __construct () {
     $user = new App\User;
@@ -76,7 +109,7 @@ public function json () {
     $this->dataTable->response(request());
 }
 ```
-example (3) (Relations):
+example (4) (Relations):
 ```php
 /**
  * @route admin.home (route alias)

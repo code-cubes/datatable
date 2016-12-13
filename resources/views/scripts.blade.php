@@ -15,11 +15,18 @@ $(document).ready(function() {
         "ajax": "{{ $url }}",
         "columns": [
         	@foreach($columns as $column)
-				{ "data": "{{ $column["mappedName"] }}" }
-				@if(! $loop->last)
-				,
-				@endif
-			@endforeach
+                { 
+                    "data": "{{ $column["mappedName"] }}" 
+                    @if($column["render"]) , 
+                    "render": function (data, type, row, meta) {
+                        return "{!! preg_replace("/(\-\-(\[|\%5B))(.*?)((\]|\%5D)\-\-)/", "\" + row.$3 + \"", $column["render"]) !!}";
+                    }
+                    @endif 
+                }
+                @if(! $loop->last)
+                ,
+                @endif
+            @endforeach
         ]
     });
 
