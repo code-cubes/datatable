@@ -12,7 +12,12 @@ class DataTable implements DataTableContract {
 	const SEPARATOR = "___";
 	protected $route = null;
 	protected $query = null;
-	protected $config = null;
+	protected $config = [
+		"processing"	=>	true,
+		"serverSide"	=>	true,
+		"enableFilter"	=>	true,
+		"displayTFoot"	=>	false,
+	];
 	protected $columns = [];
 	
 	/**
@@ -21,18 +26,17 @@ class DataTable implements DataTableContract {
 	 * @param Illuminate\Database\Eloquent\Model|Illuminate\Database\Eloquent\Builder $query
 	 * @param string $route
 	 * @param mixed[] $columns
+	 * @param mixed[] $config
 	 */
-	public function __construct ($query, $route, $columns) {
-		$config = config()->get("codecubes.datatable");
-		$this->config = $config ?: [
-			"processing"	=>	true,
-			"serverSide"	=>	true,
-			"enableFilter"	=>	true,
-			"displayTFoot"	=>	false,
-		];
+	public function __construct ($query, $route, $columns, $config = []) {
 		$this->setRoute($route);
 		$this->setColumns($columns);
 		$this->setQuery($query);
+		// config
+		$globalConfig = config()->get("codecubes.datatable");
+		$this->config = array_merge($this->config, $globalConfig, $config);
+		$searching = array_get($this->config, "searching", false);
+		$this->config["enableFilter"] = array_get($this->config, "enableFilter", $searching);
 	}
 	
 	/**
@@ -132,7 +136,7 @@ class DataTable implements DataTableContract {
 			"name"			=>	$columnName,
 			"mappedName"	=>	$this->getMappedColumnName($columnName),
 			"alias"			=>	$columnAlias,
-			"render"			=>	$render,
+			"render"		=>	preg_replace("/(\-\-(\[|\%5B))(.*?)((\]|\%5D)\-\-)/", "\" + row.$3 + \"", $render),
 		];
 	}
 
@@ -145,8 +149,8 @@ class DataTable implements DataTableContract {
 	 */
 	public function render () {
 		$data = [
-			"displayTFoot" => config()->get("codecubes.datatable.displayTFoot", false),
-			"enableFilter" => config()->get("codecubes.datatable.enableFilter", false),
+			"displayTFoot" => array_get($this->config, "displayTFoot", false),
+			"enableFilter" => array_get($this->config, "enableFilter", false),
 			"columns" => $this->columns,
 		];
 		return view("datatable::table", $data);
@@ -161,7 +165,8 @@ class DataTable implements DataTableContract {
 	 */
 	public function scripts () {
 		$data = [
-			"enableFilter" => config()->get("codecubes.datatable.enableFilter", false),
+			"enableFilter" => array_get($this->config, "enableFilter", false),
+			"customSearchSelector" => array_get($this->config, "customSearchSelector", null),
 			"config" => $this->config,
 			"url" => route($this->route),
 			"columns" => $this->columns,
@@ -174,10 +179,12 @@ class DataTable implements DataTableContract {
 	 *
 	 * to handle datatable styles part
 	 *
+	 * @param string $prefix which can be class/id/element (.class or #id or div)
 	 * @return Illuminate\View\View
 	 */
-	public function styles () {
-		return view("datatable::styles");
+	public function styles ($prefix = "") {
+		$customSearchSelector = array_get($this->config, "customSearchSelector", null);
+		return view("datatable::styles", compact(["prefix", "customSearchSelector"]));
 	}
 
 	/**
@@ -208,22 +215,29 @@ class DataTable implements DataTableContract {
 	protected function responseData (Request $request) {
 		$offset = $request->input("start", 0);
 		$limit  = $request->input("length", 10);
-		$search = $request->input("search");
-		$order = $request->input("order"); 
+		$search = $request->input("search", []);
+		$order = $request->input("order", []); 
 		$totalCount = $this->query->count();
 
-		$this->search($search);
 
-		if (config()->get("codecubes.datatable.enableFilter", false)) {
-			$filter = $request->input("columns"); 
+		if (array_get($this->config, "searching", true)) {
+			$this->search($search);
+		}
+
+		if (array_get($this->config, "enableFilter", false)) {
+			$filter = $request->input("columns", []); 
 			$this->filter($filter);
 		}
 
 		$filteredCount = $this->query->count();
 
-		$this->order($order);
+		if (array_get($this->config, "ordering", true)) {
+			$this->order($order);
+		}
 
-		$this->paginate($offset, $limit);
+		if (array_get($this->config, "paging", true)) {
+			$this->paginate($offset, $limit);
+		}
 
 		$tblData = $this->query->get();
 

@@ -8,27 +8,24 @@ $(document).ready(function() {
     });
     @endif
 
-    var dataTable = $('.codecubes-datatable').DataTable( {
-        @foreach($config as $key => $value)
-			"{{ $key }}": "{{ $value }}",
-		@endforeach
-        "ajax": "{{ $url }}",
-        "columns": [
-        	@foreach($columns as $column)
-                { 
-                    "data": "{{ $column["mappedName"] }}" 
-                    @if($column["render"]) , 
-                    "render": function (data, type, row, meta) {
-                        return "{!! preg_replace("/(\-\-(\[|\%5B))(.*?)((\]|\%5D)\-\-)/", "\" + row.$3 + \"", $column["render"]) !!}";
-                    }
-                    @endif 
+    var config = {!! json_encode($config) !!};
+    config.ajax = "{{ $url }}";
+    config.columns = [
+        @foreach($columns as $column)
+            { 
+                "data": "{{ $column["mappedName"] }}" 
+                @if($column["render"]) , 
+                "render": function (data, type, row, meta) {
+                    return "{!! $column["render"] !!}";
                 }
-                @if(! $loop->last)
-                ,
-                @endif
-            @endforeach
-        ]
-    });
+                @endif 
+            }
+            @if(! $loop->last)
+            ,
+            @endif
+        @endforeach
+    ];
+    var dataTable = $('.codecubes-datatable').DataTable(config);
 
 	@if ($enableFilter)
     // Apply the filter
@@ -39,6 +36,13 @@ $(document).ready(function() {
                 that.search(this.value).draw();
             }
         });
+    });
+    @endif
+
+    // custom search
+    @if($customSearchSelector)
+    $("{{ $customSearchSelector }}").on('keyup change', function(){
+        dataTable.search($(this).val()).draw() ;
     });
     @endif
 });
