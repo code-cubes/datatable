@@ -136,8 +136,27 @@ class DataTable implements DataTableContract {
 			"name"			=>	$columnName,
 			"mappedName"	=>	$this->getMappedColumnName($columnName),
 			"alias"			=>	$columnAlias,
-			"render"		=>	preg_replace("/(\-\-(\[|\%5B))(.*?)((\]|\%5D)\-\-)/", "\" + row.$3 + \"", $render),
+			"render"		=>	$this->generateDataTableRowRender($render),
 		];
+	}
+
+	/**
+	 * generateDataTableRowRender method
+	 *
+	 * generate render string expected to be used by datatable
+	 *
+	 * @param string $render
+	 * @param string|null
+	 */
+	protected function generateDataTableRowRender ($render) {
+		if ($render) {
+			$class = $this;
+			return preg_replace_callback("/(\-\-(\[|\%5B))(.*?)((\]|\%5D)\-\-)/", function ($matches) use ($class) {
+				return "\" + row." . $class->getMappedColumnName($matches[3]) . " + \"";
+			}, $render);
+		} else {
+			return null;
+		}
 	}
 
 	/**
