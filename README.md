@@ -53,7 +53,28 @@ public function list () {
 }
 ```
 
-example (2):
+example (2): using custom search input and extre datatable configuration
+```php
+/**
+ * @route admin.home (route alias)
+ */
+public function list () {
+    $user = new App\User;
+    
+    $dataTable = new CodeCubes\DataTable\DataTable($user, "admin.home", [
+        // columns name or column name => column Alias
+        "name", "email", "created_at" => "created At", 
+    ], [
+        "customSearchSelector" => "#search-inp", // add custom search input instead of default one
+        "ordering" => false, // disable ordering
+    ]);
+    // in case of that this method is responsible for rendering table
+    // and in the same time return JSON data required by datatable.
+    return $dataTable->response(request(), view('welcome', compact(["dataTable"])));
+}
+```
+
+example (3):
 ```php
 /**
  * @route admin.home (route alias)
@@ -86,7 +107,7 @@ public function test ($id = null, $name = null) {
 }
 ```
 
-example (3)
+example (4)
 ```php
 public function __construct () {
     $user = new App\User;
@@ -109,7 +130,7 @@ public function json () {
     $this->dataTable->response(request());
 }
 ```
-example (4) (Relations):
+example (5) (Relations):
 ```php
 /**
  * @route admin.home (route alias)

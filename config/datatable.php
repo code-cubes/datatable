@@ -15,5 +15,5 @@ return [
     // "ordering" => false,
 	// "sDom" and other datatable configurations are avaliable.
 
-	// "customSearchSelector" => "#search-inp", this will hide
+	// "customSearchSelector" => "#search-inp", // this will hide default search input
 ];
