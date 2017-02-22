@@ -1,18 +1,10 @@
 <table class="codecubes-datatable">
 	<thead>
-		<tr>
-		@foreach($columns as $column)
-		<th>{{ $column["alias"] }}</th>
-		@endforeach
-		</tr>
+		@include("datatable::partials.table-columns", ["columns" => $columns])
 	</thead>
 	@if($displayTFoot || $enableFilter)
 	<tfoot>
-		<tr>
-		@foreach($columns as $column)
-		<th>{{ $column["alias"] }}</th>
-		@endforeach
-		</tr>
+		@include("datatable::partials.table-columns", ["columns" => $columns])
 	</tfoot>
 	@endif
 </table>

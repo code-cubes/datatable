@@ -19,6 +19,7 @@ class DataTable implements DataTableContract {
 		"displayTFoot"	=>	false,
 	];
 	protected $columns = [];
+	protected $hiddenColumns = [];
 	
 	/**
 	 * Create new DataTable instance
@@ -59,11 +60,11 @@ class DataTable implements DataTableContract {
 	 * @return void
 	 */
 	protected function setQuery ($query) {
-		$columns = $this->columns;
-		array_walk($columns, function (&$record, $key) {
-			$record = $record["name"] . " AS " . $record["mappedName"];
-		});
-		$query = $query->select($columns);
+		$allColumns = array_merge($this->columns, $this->hiddenColumns);
+		$allColumns = array_map(function ($record) {
+			return $record["name"] . " AS " . $record["mappedName"];
+		}, $allColumns);
+		$query = $query->select($allColumns);
 		$this->query = $query;
 	}
 
@@ -110,8 +111,8 @@ class DataTable implements DataTableContract {
 				if (is_array($value)) {
 					$alias = array_get($value, "as", null);
 					$render = array_get($value, "render", null);
-
-					$this->add($key, $alias, $render);
+					$hidden = array_get($value, "hidden", false);
+					$this->add($key, $alias, $hidden, $render);
 				} else {
 					$this->add($key, $value);					
 				}
@@ -129,10 +130,11 @@ class DataTable implements DataTableContract {
 	 * @param string|null $render
 	 * @return void
 	 */
-	protected function add ($columnName, $columnAlias = null, $render = null) {
+	protected function add ($columnName, $columnAlias = null, $hidden = false, $render = null) {
 		$columnAlias = $columnAlias ?: $columnName;
-
-		$this->columns[] = [
+		// $hiddenColumns or $columns
+		$columnsVariableName = $hidden ? "hiddenColumns" : "columns";
+		$this->{$columnsVariableName}[] = [
 			"name"			=>	$columnName,
 			"mappedName"	=>	$this->getMappedColumnName($columnName),
 			"alias"			=>	$columnAlias,
@@ -151,6 +153,7 @@ class DataTable implements DataTableContract {
 	protected function generateDataTableRowRender ($render) {
 		if ($render) {
 			$class = $this;
+			$render = str_replace("\"", "'", $render);
 			return preg_replace_callback("/(\-\-(\[|\%5B))(.*?)((\]|\%5D)\-\-)/", function ($matches) use ($class) {
 				return "\" + row." . $class->getMappedColumnName($matches[3]) . " + \"";
 			}, $render);
